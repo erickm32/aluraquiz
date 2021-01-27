@@ -4,8 +4,6 @@ import { useRouter } from 'next/router';
 import db from '../db.json';
 import Widget from '../src/components/Widget';
 import QuizLogo from '../src/components/QuizLogo';
-import QuizBackground from '../src/components/QuizBackground';
-import GitHubCorner from '../src/components/GitHubCorner';
 import Footer from '../src/components/Footer';
 
 export const QuizContainer = styled.div`
@@ -24,7 +22,7 @@ export default function Home() {
   const [userName, setUserName] = useState('');
 
   return (
-    <QuizBackground backgroundImage={db.bg}>
+    <>
       <QuizContainer>
         <QuizLogo />
         <Widget>
@@ -59,7 +57,6 @@ export default function Home() {
         </Widget>
         <Footer />
       </QuizContainer>
-      <GitHubCorner projectUrl="https://github.com/erickm32/aluraquiz" />
-    </QuizBackground>
+    </>
   );
 }
