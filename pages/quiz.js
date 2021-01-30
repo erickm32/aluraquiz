@@ -7,6 +7,7 @@ import QuizLogo from '../src/components/QuizLogo';
 import QuizContainer from '../src/components/QuizContainer';
 import Widget from '../src/components/Widget';
 import Button from '../src/components/Button';
+import AlternativesForm from '../src/components/AlternativesForm';
 
 function ResultWidget({ results, userName }) {
   return (
@@ -67,7 +68,11 @@ function QuestionWidget({
   addResult,
 }) {
   const questionId = `question__${questionIndex}`;
-  const [selectedAlternative, setSelectedAlternative] = useState(0);
+  const [selectedAlternative, setSelectedAlternative] = useState(undefined);
+  const [isQuestionSubmited, setIsQuestionSubmited] = React.useState(false);
+  const isCorrect = selectedAlternative === question.answer;
+  const hasAlternativeSelected = selectedAlternative !== undefined;
+
   return (
     <Widget>
       <Widget.Header>
@@ -94,39 +99,49 @@ function QuestionWidget({
           {question.description}
         </p>
 
-        <form
-          onSubmit={(infosDoEvento) => {
-            infosDoEvento.preventDefault();
-            onSubmit(selectedAlternative);
+        <AlternativesForm
+          onSubmit={(event) => {
+            event.preventDefault();
+            setIsQuestionSubmited(true);
+            setTimeout(() => {
+              addResult(isCorrect);
+              onSubmit();
+              setIsQuestionSubmited(false);
+              setSelectedAlternative(undefined);
+            }, 3 * 1000);
           }}
         >
           {question.alternatives.map((alternative, alternativeIndex) => {
             const alternativeId = `alternative__${alternativeIndex}`;
+            const alternativeStatus = isCorrect ? 'SUCCESS' : 'ERROR';
+            const isSelected = selectedAlternative === alternativeIndex;
             return (
               <Widget.Topic
                 as="label"
+                key={alternativeId}
                 htmlFor={alternativeId}
-                style={{ backgroundColor: alternativeIndex === selectedAlternative ? 'green' : 'inherit' }}
+                data-selected={isSelected}
+                data-status={isQuestionSubmited && alternativeStatus}
               >
                 <input
                   style={{ display: 'none' }}
                   id={alternativeId}
                   name={questionId}
                   type="radio"
-                  onClick={() => setSelectedAlternative(alternativeIndex)}
+                  // onClick={() => setSelectedAlternative(alternativeIndex)}
+                  onChange={() => setSelectedAlternative(alternativeIndex)}
                 />
                 {alternative}
               </Widget.Topic>
             );
           })}
 
-          {/* <pre>
-            {JSON.stringify(question, null, 4)}
-          </pre> */}
-          <Button type="submit">
+          <Button type="submit" disabled={!hasAlternativeSelected}>
             Confirmar
           </Button>
-        </form>
+          {isQuestionSubmited && isCorrect && <p>Você acertou!</p>}
+          {isQuestionSubmited && !isCorrect && <p>Você errou!</p>}
+        </AlternativesForm>
       </Widget.Content>
     </Widget>
   );
@@ -146,10 +161,7 @@ export default function QuizPage() {
   const questionIndex = currentQuestion;
 
   const totalQuestions = db.questions.length;
-  const [questionAndUserAnswers, setQuestionAndUserAnswers] = useState({
-    questionIndex: 0, answer: null,
-  });
-  const [numberOfCorrects, setNumberOfCorrects] = useState(0);
+  const [results, setResults] = useState([]);
 
   const question = db.questions[questionIndex];
 
@@ -165,11 +177,7 @@ export default function QuizPage() {
     // nasce === didMount
   }, []);
 
-  const handleSubmitQuiz = (selectedAnswer) => {
-    setQuestionAndUserAnswers({ questionIndex, answer: selectedAnswer });
-    if (question.answer === selectedAnswer) {
-      setNumberOfCorrects(numberOfCorrects + 1);
-    }
+  const handleSubmitQuiz = () => {
     const nextQuestion = questionIndex + 1;
     if (nextQuestion < totalQuestions) {
       setCurrentQuestion(nextQuestion);
@@ -194,6 +202,7 @@ export default function QuizPage() {
           onSubmit={handleSubmitQuiz}
           questionIndex={0}
           totalQuestions={totalQuestions}
+          addResult={addResult}
         />
       )}
 
