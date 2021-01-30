@@ -8,6 +8,44 @@ import QuizContainer from '../src/components/QuizContainer';
 import Widget from '../src/components/Widget';
 import Button from '../src/components/Button';
 
+function ResultWidget({ results, userName }) {
+  return (
+    <Widget>
+      <Widget.Header>
+        Tela de Resultado:
+      </Widget.Header>
+
+      <Widget.Content>
+        <p>
+          Você acertou
+          {' '}
+          {results.filter((x) => x).length}
+          {` perguntas, ${userName}!`}
+        </p>
+        <ul>
+          {results.map((result, index) => (
+            <li key={`result__${result}`}>
+              #
+              {index + 1}
+              {' '}
+              Resultado:
+              {' '}
+              {result === true
+                ? 'Acertou'
+                : 'Errou'}
+            </li>
+          ))}
+        </ul>
+      </Widget.Content>
+    </Widget>
+  );
+}
+
+ResultWidget.propTypes = {
+  results: PropTypes.arrayOf(PropTypes.bool).isRequired,
+  userName: PropTypes.string.isRequired,
+};
+
 function LoadingWidget() {
   return (
     <Widget>
@@ -26,6 +64,7 @@ function QuestionWidget({
   questionIndex,
   totalQuestions,
   onSubmit,
+  addResult,
 }) {
   const questionId = `question__${questionIndex}`;
   const [selectedAlternative, setSelectedAlternative] = useState(0);
@@ -139,6 +178,13 @@ export default function QuizPage() {
     }
   };
 
+  const addResult = (result) => {
+    setResults([
+      ...results,
+      result,
+    ]);
+  };
+
   return (
     <QuizContainer>
       <QuizLogo />
@@ -153,21 +199,14 @@ export default function QuizPage() {
 
       {screenState === screenStates.LOADING && <LoadingWidget />}
 
-      {screenState === screenStates.RESULT && (
-      <div>
-        Você acertou
-        {' '}
-        {numberOfCorrects}
-        {' '}
-        questões, parabéns!
-      </div>
-      )}
+      {screenState === screenStates.RESULT && (<ResultWidget results={results} userName />)}
 
     </QuizContainer>
   );
 }
 
 QuestionWidget.propTypes = {
+  addResult: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   question: PropTypes.arrayOf(
     {
