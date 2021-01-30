@@ -8,6 +8,19 @@ import QuizContainer from '../src/components/QuizContainer';
 import Widget from '../src/components/Widget';
 import Button from '../src/components/Button';
 
+function LoadingWidget() {
+  return (
+    <Widget>
+      <Widget.Header>
+        Carregando...
+      </Widget.Header>
+
+      <Widget.Content>
+        [Desafio do Loading]
+      </Widget.Content>
+    </Widget>
+  );
+}
 function QuestionWidget({
   question,
   questionIndex,
@@ -80,43 +93,76 @@ function QuestionWidget({
   );
 }
 
+const screenStates = {
+  QUIZ: 'QUIZ',
+  LOADING: 'LOADING',
+  RESULT: 'RESULT',
+};
 export default function QuizPage() {
   const router = useRouter();
 
   const { userName } = router.query;
-  const question = db.questions[0];
-  const questionIndex = 0;
+  const [screenState, setScreenState] = React.useState(screenStates.LOADING);
+  const [currentQuestion, setCurrentQuestion] = React.useState(0);
+  const questionIndex = currentQuestion;
+
+  const totalQuestions = db.questions.length;
   const [questionAndUserAnswers, setQuestionAndUserAnswers] = useState({
     questionIndex: 0, answer: null,
   });
+  const [numberOfCorrects, setNumberOfCorrects] = useState(0);
+
+  const question = db.questions[questionIndex];
+
+  // [React chama de: Efeitos || Effects]
+  // React.useEffect
+  // atualizado === willUpdate
+  // morre === willUnmount
+  React.useEffect(() => {
+    // fetch() ...
+    setTimeout(() => {
+      setScreenState(screenStates.QUIZ);
+    }, 1 * 1000);
+    // nasce === didMount
+  }, []);
+
+  const handleSubmitQuiz = (selectedAnswer) => {
+    setQuestionAndUserAnswers({ questionIndex, answer: selectedAnswer });
+    if (question.answer === selectedAnswer) {
+      setNumberOfCorrects(numberOfCorrects + 1);
+    }
+    const nextQuestion = questionIndex + 1;
+    if (nextQuestion < totalQuestions) {
+      setCurrentQuestion(nextQuestion);
+    } else {
+      setScreenState(screenStates.RESULT);
+    }
+  };
 
   return (
     <QuizContainer>
       <QuizLogo />
-      <QuestionWidget
-        question={question}
-        onSubmit={(selectedAnswer) => {
-          setQuestionAndUserAnswers({ questionIndex, answer: selectedAnswer });
-          // if (question.answer === selectedAnswer) {
-          //   console.log('acerto mizeravi');
-          // }
-        }}
-        questionIndex={0}
-        totalQuestions={db.questions.length}
-      />
+      {screenState === screenStates.QUIZ && (
+        <QuestionWidget
+          question={question}
+          onSubmit={handleSubmitQuiz}
+          questionIndex={0}
+          totalQuestions={totalQuestions}
+        />
+      )}
 
-      <Widget>
-        <Widget.Content>
-          <h1>Input da Galera</h1>
+      {screenState === screenStates.LOADING && <LoadingWidget />}
 
-          <p>lorem ipsum dolor sit amet...</p>
-          <p>
-            Batata
-            {' '}
-            {userName}
-          </p>
-        </Widget.Content>
-      </Widget>
+      {screenState === screenStates.RESULT && (
+      <div>
+        Você acertou
+        {' '}
+        {numberOfCorrects}
+        {' '}
+        questões, parabéns!
+      </div>
+      )}
+
     </QuizContainer>
   );
 }
