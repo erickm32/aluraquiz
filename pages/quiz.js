@@ -200,7 +200,7 @@ export default function QuizPage() {
         <QuestionWidget
           question={question}
           onSubmit={handleSubmitQuiz}
-          questionIndex={0}
+          questionIndex={questionIndex}
           totalQuestions={totalQuestions}
           addResult={addResult}
         />
