@@ -3,10 +3,8 @@ import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import Head from 'next/head';
 
 import db from '../db.json';
-import QuizBackground from '../src/components/QuizBackground';
-import GitHubCorner from '../src/components/GitHubCorner';
 
-const GlobalStyle = createGlobalStyle`
+export const GlobalStyle = createGlobalStyle`
   * {
     box-sizing: border-box;
   }
@@ -47,11 +45,8 @@ export default function App({ Component, pageProps }) {
       </Head>
       <ThemeProvider theme={theme}>
         <GlobalStyle />
-        <QuizBackground backgroundImage={db.bg}>
-          {/*  eslint-disable-next-line react/jsx-props-no-spreading */}
-          <Component {...pageProps} />
-          <GitHubCorner projectUrl="https://github.com/erickm32/aluraquiz" />
-        </QuizBackground>
+        {/*  eslint-disable-next-line react/jsx-props-no-spreading */}
+        <Component {...pageProps} />
       </ThemeProvider>
     </>
   );

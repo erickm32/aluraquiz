@@ -1,19 +1,27 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import PropTypes from 'prop-types';
+import { Lottie } from '@crello/react-lottie';
 
-import db from '../db.json';
-import QuizLogo from '../src/components/QuizLogo';
-import QuizContainer from '../src/components/QuizContainer';
-import Widget from '../src/components/Widget';
-import Button from '../src/components/Button';
-import AlternativesForm from '../src/components/AlternativesForm';
+// import db from '../../../db.json';
+import QuizLogo from '../../components/QuizLogo';
+import QuizContainer from '../../components/QuizContainer';
+import Widget from '../../components/Widget';
+import Button from '../../components/Button';
+import AlternativesForm from '../../components/AlternativesForm';
+import BackLinkArrow from '../../components/BackLinkArrow';
+
+import loadingAnimation from './animations/loading.json';
+import QuizBackground from '../../components/QuizBackground';
 
 function ResultWidget({ results, userName }) {
   return (
     <Widget>
       <Widget.Header>
-        Tela de Resultado:
+        <BackLinkArrow href="/" />
+        <h3>
+          Tela de Resultado:
+        </h3>
       </Widget.Header>
 
       <Widget.Content>
@@ -25,7 +33,7 @@ function ResultWidget({ results, userName }) {
         </p>
         <ul>
           {results.map((result, index) => (
-            <li key={`result__${result}`}>
+            <li key={`result__${result}${Math.random()}`}>
               #
               {index + 1}
               {' '}
@@ -54,8 +62,13 @@ function LoadingWidget() {
         Carregando...
       </Widget.Header>
 
-      <Widget.Content>
-        [Desafio do Loading]
+      <Widget.Content style={{ display: 'flex', justifyContent: 'center' }}>
+        <Lottie
+          width="200px"
+          height="200px"
+          className="lottie-container basic"
+          config={{ animationData: loadingAnimation, loop: true, autoplay: true }}
+        />
       </Widget.Content>
     </Widget>
   );
@@ -76,7 +89,7 @@ function QuestionWidget({
   return (
     <Widget>
       <Widget.Header>
-        {/* <BackLinkArrow href="/" /> */}
+        <BackLinkArrow href="/" />
         <h3>
           {`Pergunta ${questionIndex + 1} de ${totalQuestions}`}
         </h3>
@@ -152,7 +165,7 @@ const screenStates = {
   LOADING: 'LOADING',
   RESULT: 'RESULT',
 };
-export default function QuizPage() {
+export default function QuizPage({ externalQuestions, externalBg }) {
   const router = useRouter();
 
   const { userName } = router.query;
@@ -160,10 +173,13 @@ export default function QuizPage() {
   const [currentQuestion, setCurrentQuestion] = React.useState(0);
   const questionIndex = currentQuestion;
 
-  const totalQuestions = db.questions.length;
+  // const totalQuestions = db.questions.length;
   const [results, setResults] = useState([]);
 
-  const question = db.questions[questionIndex];
+  // const question = db.questions[questionIndex];
+  const question = externalQuestions[questionIndex];
+  const totalQuestions = externalQuestions.length;
+  const bg = externalBg;
 
   // [React chama de: Efeitos || Effects]
   // React.useEffect
@@ -173,7 +189,7 @@ export default function QuizPage() {
     // fetch() ...
     setTimeout(() => {
       setScreenState(screenStates.QUIZ);
-    }, 1 * 1000);
+    }, 2 * 1000);
     // nasce === didMount
   }, []);
 
@@ -194,23 +210,28 @@ export default function QuizPage() {
   };
 
   return (
-    <QuizContainer>
-      <QuizLogo />
-      {screenState === screenStates.QUIZ && (
-        <QuestionWidget
-          question={question}
-          onSubmit={handleSubmitQuiz}
-          questionIndex={questionIndex}
-          totalQuestions={totalQuestions}
-          addResult={addResult}
-        />
-      )}
+    <QuizBackground backgroundImage={bg}>
 
-      {screenState === screenStates.LOADING && <LoadingWidget />}
+      <QuizContainer>
+        <QuizLogo />
+        {screenState === screenStates.QUIZ && (
+          <QuestionWidget
+            question={question}
+            onSubmit={handleSubmitQuiz}
+            questionIndex={questionIndex}
+            totalQuestions={totalQuestions}
+            addResult={addResult}
+          />
+        )}
 
-      {screenState === screenStates.RESULT && (<ResultWidget results={results} userName />)}
+        {screenState === screenStates.LOADING && <LoadingWidget />}
 
-    </QuizContainer>
+        {screenState === screenStates.RESULT && (
+          <ResultWidget results={results} userName={userName} />
+        )}
+
+      </QuizContainer>
+    </QuizBackground>
   );
 }
 
